@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateAd } from "./api";
 
+const API_BASE = "https://gen-ai-rxym.onrender.com";
+
 export default function App() {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([]);
@@ -22,7 +24,7 @@ export default function App() {
 
   useEffect(() => {
     async function loadChats() {
-      const res = await fetch("http://localhost:5000/api/chat/conversations", {
+      const res = await fetch(`${API_BASE}/api/chat/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -40,7 +42,7 @@ export default function App() {
   async function openChat(chatId) {
     setActiveChatId(chatId);
 
-    const res = await fetch(`http://localhost:5000/api/chat/${chatId}`, {
+    const res = await fetch(`${API_BASE}/api/chat/${chatId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -49,7 +51,7 @@ export default function App() {
 
 
   async function newChat() {
-    const res = await fetch("http://localhost:5000/api/chat/new", {
+    const res = await fetch(`${API_BASE}/api/chat/new`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -113,7 +115,7 @@ export default function App() {
     setPrompt("");
     setLoading(true);
 
-    await fetch("http://localhost:5000/api/chat/message", {
+    await fetch(`${API_BASE}/api/chat/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -136,7 +138,7 @@ export default function App() {
 
       setMessages((m) => [...m, aiMsg]);
 
-      await fetch("http://localhost:5000/api/chat/message", {
+      await fetch(`${API_BASE}/api/chat/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
