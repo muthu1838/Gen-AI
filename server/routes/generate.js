@@ -9,39 +9,38 @@ import { generateCopy } from "../services/textGen.js";
 
 const router = express.Router();
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const SERVER_URL = process.env.SERVER_URL || "https://gen-ai-rxym.onrender.com";
 
 router.post("/", async (req, res) => {
   try {
     const { prompt, tone } = req.body;
 
-  
+    // Generate image
     const imageBuffer = await generateImage(prompt);
 
-   
+    // Save image file
     const filename = `${uuidv4()}.png`;
     const outputPath = path.join(__dirname, "../output", filename);
     fs.writeFileSync(outputPath, imageBuffer);
 
-    
+    // Generate text copy
     let copy;
     try {
       copy = await generateCopy(prompt, tone);
     } catch (err) {
-    
       copy = {
         caption: `${prompt}`,
-        hashtags: "#AIAds #AdVantageGen #CreativeMarketing"
+        hashtags: "#AIAds #MEngineAI #CreativeMarketing"
       };
     }
 
-    
+    // Return response with 'text' field (matches App.jsx) and live imageUrl
     res.json({
-      caption: copy.caption,
-      hashtags: copy.hashtags,
-      imageUrl: `http://localhost:5000/output/${filename}`
+      text: `${copy.caption}\n\n${copy.hashtags}`,
+      imageUrl: `${SERVER_URL}/output/${filename}`
     });
 
   } catch (err) {
