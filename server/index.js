@@ -29,8 +29,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Handle OPTIONS preflight for all routes
-app.options("*", cors());
+// Handle OPTIONS preflight for all routes (Express 5 syntax)
+app.options("(.*)", cors());
 
 app.use(express.json());
 app.use("/api/generate", generateRoute);
