@@ -18,11 +18,16 @@ app.use("/api/generate", generateRoute);
 app.use("/output", express.static("output"));
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"));
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+  });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
 
-app.listen(process.env.PORT, () =>
-  console.log("🚀 Server running on port", process.env.PORT)
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () =>
+  console.log("🚀 Server running on port", PORT)
 );
