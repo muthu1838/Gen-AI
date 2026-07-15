@@ -24,14 +24,23 @@ export default function App() {
 
   useEffect(() => {
     async function loadChats() {
-      const res = await fetch(`${API_BASE}/api/chat/conversations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setConversations(data);
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/conversations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.status === 401) {
+          localStorage.clear();
+          navigate("/login");
+          return;
+        }
+        const data = await res.json();
+        setConversations(data);
 
-      if (data.length) {
-        openChat(data[0]._id);
+        if (data.length) {
+          openChat(data[0]._id);
+        }
+      } catch (err) {
+        console.error("Error loading chats:", err);
       }
     }
 
@@ -42,24 +51,42 @@ export default function App() {
   async function openChat(chatId) {
     setActiveChatId(chatId);
 
-    const res = await fetch(`${API_BASE}/api/chat/${chatId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    setMessages(data);
+    try {
+      const res = await fetch(`${API_BASE}/api/chat/${chatId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
+      const data = await res.json();
+      setMessages(data);
+    } catch (err) {
+      console.error("Error opening chat:", err);
+    }
   }
 
 
   async function newChat() {
-    const res = await fetch(`${API_BASE}/api/chat/new`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/chat/new`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
 
-    const chat = await res.json();
-    setConversations((c) => [chat, ...c]);
-    setMessages([]);
-    setActiveChatId(chat._id);
+      const chat = await res.json();
+      setConversations((c) => [chat, ...c]);
+      setMessages([]);
+      setActiveChatId(chat._id);
+    } catch (err) {
+      console.error("Error creating new chat:", err);
+    }
   }
 
  
@@ -115,7 +142,7 @@ export default function App() {
     setPrompt("");
     setLoading(true);
 
-    await fetch(`${API_BASE}/api/chat/message`, {
+    const userRes = await fetch(`${API_BASE}/api/chat/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -128,6 +155,12 @@ export default function App() {
       })
     });
 
+    if (userRes.status === 401) {
+      localStorage.clear();
+      navigate("/login");
+      return;
+    }
+
     try {
       const data = await generateAd(finalPrompt, mode);
       const aiMsg = {
@@ -138,7 +171,7 @@ export default function App() {
 
       setMessages((m) => [...m, aiMsg]);
 
-      await fetch(`${API_BASE}/api/chat/message`, {
+      const aiRes = await fetch(`${API_BASE}/api/chat/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -151,6 +184,12 @@ export default function App() {
           imageUrl: aiMsg.imageUrl
         })
       });
+
+      if (aiRes.status === 401) {
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
     } catch {
       setMessages((m) => [...m, { role: "ai", text: "⚠️ Something went wrong" }]);
     } finally {
